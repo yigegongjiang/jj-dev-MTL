@@ -11,6 +11,16 @@
 
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [SemVer](https://semver.org/).
 
+## [0.1.1] - 2026-07-08
+
+### Added
+
+- 三个文本工具: Format JSON (含嵌套 JSON 字符串自动解包 + 转义兜底) / Multiline → Singleline (转义) / Singleline → Multiline (反转义), 输入即时预览 + 复制 / 粘贴到当前 App.
+
+### Changed
+
+- Format JSON 输出键按字典序排序 (更利于 diff 对比); 斜杠不再被转义为 `\/`.
+
 ## [0.1.0] - 2026-07-08
 
 ### Added
@@ -20,4 +30,5 @@
 - 提供 `install.sh` 一行命令安装 (下载 → 校验 → 装入 `/Applications`).
 - Help 菜单 → Check for Updates… : 检测新版, 自动下载 + 替换 + 重启.
 
+[0.1.1]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.1.1
 [0.1.0]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.1.0

@@ -10,6 +10,8 @@
 
 面向开发者的 macOS 原生小工具集 (JSON 格式化 / 文本处理 / ...), Swift + AppKit, 启动即用.
 
+类似产品: [DevToys](https://devtoys.app/).
+
 ## 安装
 
 本工具 NEVER 上架 App Store, 通过 GitHub Releases 分发 (ad-hoc 签名, 非公证).

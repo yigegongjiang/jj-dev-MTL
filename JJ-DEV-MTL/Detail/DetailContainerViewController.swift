@@ -11,7 +11,17 @@ final class DetailContainerViewController: NSViewController {
   }
 
   func show(tool: Tool) {
-    let next = ToolPlaceholderViewController(tool: tool)
+    let next: NSViewController
+    switch tool.id {
+    case "json-formatter":
+      next = FormatJsonViewController(tool: tool)
+    case "text-multiline-to-singleline":
+      next = MultilineToSinglelineViewController(tool: tool)
+    case "text-singleline-to-multiline":
+      next = SinglelineToMultilineViewController(tool: tool)
+    default:
+      next = ToolPlaceholderViewController(tool: tool)
+    }
     swap(to: next)
   }
 

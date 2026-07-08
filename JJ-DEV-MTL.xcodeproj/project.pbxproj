@@ -6,20 +6,48 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		71899367F84DF939C34EB5DC /* TextUtilsCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A154B2ACBB17D67DB98FF9F /* TextUtilsCoreTests.swift */; };
+		931D3268E2CF1225B56F4695 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE0E4A3838E82CA6F71FDE53 /* Cocoa.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		2F3401AAF7CEDC1A606DC7BB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F32181AD2FFE4DF3001386AE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F32181B42FFE4DF3001386AE;
+			remoteInfo = "JJ-DEV-MTL";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		6A154B2ACBB17D67DB98FF9F /* TextUtilsCoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextUtilsCoreTests.swift; sourceTree = "<group>"; };
 		F32181B52FFE4DF3001386AE /* JJ-DEV-MTL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "JJ-DEV-MTL.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F32181D02FFE4DF4001386AE /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
+		F4F53F824F7E1FF0866E017E /* JJ-DEV-MTLTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "JJ-DEV-MTLTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FE0E4A3838E82CA6F71FDE53 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F32181B72FFE4DF3001386AE /* JJ-DEV-MTL */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = "JJ-DEV-MTL";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		0CC09E0EC680F09A8513A7DE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				931D3268E2CF1225B56F4695 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F32181B22FFE4DF3001386AE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -30,12 +58,39 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		33C5D45F495FF7014F85A5F5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				7D6BFEECF2E98A6B6D9091C4 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		7D6BFEECF2E98A6B6D9091C4 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				FE0E4A3838E82CA6F71FDE53 /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
+		AE82E54EDF1F85DF72AE1B6A /* JJ-DEV-MTLTests */ = {
+			isa = PBXGroup;
+			children = (
+				6A154B2ACBB17D67DB98FF9F /* TextUtilsCoreTests.swift */,
+			);
+			name = "JJ-DEV-MTLTests";
+			path = "JJ-DEV-MTLTests";
+			sourceTree = "<group>";
+		};
 		F32181AC2FFE4DF3001386AE = {
 			isa = PBXGroup;
 			children = (
 				F32181D02FFE4DF4001386AE /* Version.xcconfig */,
 				F32181B72FFE4DF3001386AE /* JJ-DEV-MTL */,
 				F32181B62FFE4DF3001386AE /* Products */,
+				33C5D45F495FF7014F85A5F5 /* Frameworks */,
+				AE82E54EDF1F85DF72AE1B6A /* JJ-DEV-MTLTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -43,6 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				F32181B52FFE4DF3001386AE /* JJ-DEV-MTL.app */,
+				F4F53F824F7E1FF0866E017E /* JJ-DEV-MTLTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -50,6 +106,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		E91FFB00726E3567F322561B /* JJ-DEV-MTLTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FEE4D5C622D5CA597E4BB8F1 /* Build configuration list for PBXNativeTarget "JJ-DEV-MTLTests" */;
+			buildPhases = (
+				34D871982224EB558D492B00 /* Sources */,
+				0CC09E0EC680F09A8513A7DE /* Frameworks */,
+				979B6AD24021285C0ECD9112 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6EF944DF9B222A89D5B13CFB /* PBXTargetDependency */,
+			);
+			name = "JJ-DEV-MTLTests";
+			productName = "JJ-DEV-MTLTests";
+			productReference = F4F53F824F7E1FF0866E017E /* JJ-DEV-MTLTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		F32181B42FFE4DF3001386AE /* JJ-DEV-MTL */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = F32181C32FFE4DF4001386AE /* Build configuration list for PBXNativeTarget "JJ-DEV-MTL" */;
@@ -66,8 +140,6 @@
 				F32181B72FFE4DF3001386AE /* JJ-DEV-MTL */,
 			);
 			name = "JJ-DEV-MTL";
-			packageProductDependencies = (
-			);
 			productName = "JJ-DEV-MTL";
 			productReference = F32181B52FFE4DF3001386AE /* JJ-DEV-MTL.app */;
 			productType = "com.apple.product-type.application";
@@ -102,11 +174,19 @@
 			projectRoot = "";
 			targets = (
 				F32181B42FFE4DF3001386AE /* JJ-DEV-MTL */,
+				E91FFB00726E3567F322561B /* JJ-DEV-MTLTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		979B6AD24021285C0ECD9112 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F32181B32FFE4DF3001386AE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -117,6 +197,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		34D871982224EB558D492B00 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				71899367F84DF939C34EB5DC /* TextUtilsCoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F32181B12FFE4DF3001386AE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -126,7 +214,39 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		6EF944DF9B222A89D5B13CFB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "JJ-DEV-MTL";
+			target = F32181B42FFE4DF3001386AE /* JJ-DEV-MTL */;
+			targetProxy = 2F3401AAF7CEDC1A606DC7BB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		2977AEE75F47E1156DEC0977 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yigegongjiang.JJ-DEV-MTLTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_MODULE_NAME = JJ_DEV_MTLTests;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JJ-DEV-MTL.app/Contents/MacOS/JJ-DEV-MTL";
+			};
+			name = Debug;
+		};
 		F32181C12FFE4DF4001386AE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -305,6 +425,29 @@
 			};
 			name = Release;
 		};
+		FE691A316C9079D2F7CCC26F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yigegongjiang.JJ-DEV-MTLTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_MODULE_NAME = JJ_DEV_MTLTests;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/JJ-DEV-MTL.app/Contents/MacOS/JJ-DEV-MTL";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -322,6 +465,15 @@
 			buildConfigurations = (
 				F32181C42FFE4DF4001386AE /* Debug */,
 				F32181C52FFE4DF4001386AE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FEE4D5C622D5CA597E4BB8F1 /* Build configuration list for PBXNativeTarget "JJ-DEV-MTLTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FE691A316C9079D2F7CCC26F /* Release */,
+				2977AEE75F47E1156DEC0977 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

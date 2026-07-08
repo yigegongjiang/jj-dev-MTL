@@ -7,6 +7,24 @@
 
 # Changelog (developer, follow [CHANGELOG.md](./CHANGELOG.md))
 
+## [0.1.1] - 2026-07-08
+
+### Added
+
+- 三个文本工具: Format JSON (含嵌套 JSON 字符串自动解包 + 转义兜底) / Multiline → Singleline (转义) / Singleline → Multiline (反转义), 输入即时预览 + 复制 / 粘贴到当前 App.
+  - `JJ-DEV-MTL/TextUtils/TextUtilsCore.swift`: 纯逻辑 (`nonisolated`), `escapeToSingleline` / `unescapeToMultiline` / `formatJson`; unescape 仅识别 `\n \t \r \\`, 其余 `\X` 保留原样 (与源 raycast 实现一致).
+  - `JJ-DEV-MTL/TextUtils/TextUtilsViewController.swift`: 共享 UI 骨架 (Input NSTextView + Result NSTextView + Copy/Paste 按钮 + 错误提示 + toast) + 3 个子类; Paste 走 `NSApp.hide` + `CGEvent` ⌘V 模拟给前台 App.
+  - `Model/Tool.swift`: 追加 `text-multiline-to-singleline` / `text-singleline-to-multiline` 两项; `json-formatter` 标题改为 `Format JSON` 并对接 `FormatJsonViewController`.
+  - `Detail/DetailContainerViewController.swift` `show(tool:)` 按 `tool.id` 分发到具体 VC, 未实现的仍走 placeholder.
+  - `JJ-DEV-MTLTests` xctest bundle target (test host = app, `@testable import JJ_DEV_MTL`) + shared `.xcscheme` (TestAction 挂上 test target), 33 unit tests 覆盖 escape / unescape / formatJson (含嵌套解包 / 转义兜底 / 键序 / 斜杠 / fragment).
+
+### Changed
+
+- Format JSON 输出键按字典序排序 (更利于 diff 对比); 斜杠不再被转义为 `\/`.
+  - `JSONSerialization.WritingOptions = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes, .fragmentsAllowed]`; JS 源实现保留 insertion order, Foundation 不保序, 选 `.sortedKeys` 换取可预测输出.
+
+[0.1.1]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.1.1
+
 ## [0.1.0] - 2026-07-08
 
 ### Added
