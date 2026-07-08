@@ -33,7 +33,7 @@ final class AutoQuitController {
     let m = minutes
     guard m > 0 else { timer = nil; return }
     let t = Timer(timeInterval: TimeInterval(m * 60), repeats: false) { _ in
-      NSApp.terminate(nil)
+      MainActor.assumeIsolated { NSApp.terminate(nil) }  // Timer 挂在 RunLoop.main, 必在主线程触发
     }
     RunLoop.main.add(t, forMode: .common)  // .common: 菜单/拖拽等追踪模式下仍计时
     timer = t

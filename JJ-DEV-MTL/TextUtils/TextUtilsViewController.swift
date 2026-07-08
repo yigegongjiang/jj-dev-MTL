@@ -2,7 +2,7 @@ import Cocoa
 
 // text-utils 工具共享 UI: 标题 + 方向切换按钮 + (可选)工具级附加控件 + 可拖拽 split (输入/结果) + 错误提示.
 // 无 Input/Result 标签, 无 Copy/Paste 按钮 (面向键盘用户: 结果可选中直接 ⌘C); 出现时自动探查剪贴板填入输入.
-class TextUtilsViewController: NSViewController, NSTextViewDelegate, NSSplitViewDelegate {
+class TextUtilsViewController: NSViewController, NSTextViewDelegate, NSSplitViewDelegate, ToolbarAccessoryProviding {
 
   private let tool: Tool
   private let placeholder: String
@@ -13,8 +13,20 @@ class TextUtilsViewController: NSViewController, NSTextViewDelegate, NSSplitView
 
   private var ioSplit: IOSplitView!
   private var orientationButton: NSButton!
+  private var historyButton: NSButton!
   private var didLayoutOnce = false
-  private var didAutofill = false
+
+  // 操作控件上交顶部 tab 栏右侧: history + (可选)方向切换 + 布局切换
+  weak var accessoryHost: ToolbarAccessoryHost?
+  private var accessoryView: NSView?
+  var toolbarAccessories: [NSView] {
+    var views: [NSView] = [historyButton]
+    if let accessoryView { views.append(accessoryView) }
+    views.append(orientationButton)
+    return views
+  }
+
+  private static let historyLimit = 15
 
   static let resultFont = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
   private static let orientationKey = "JJDEVMTL.IOSplit.vertical"  // true = 左右, false = 上下
@@ -45,6 +57,18 @@ class TextUtilsViewController: NSViewController, NSTextViewDelegate, NSSplitView
   // 供子类在附加控件变化后刷新结果
   func reloadResult() { refresh() }
 
+  // tab 激活时调用: 输入为空则主动探查剪贴板填入 (打开即用; 复用 VC 下 loadView 只跑一次, 靠此每次切入探查)
+  func activateInput() {
+    guard let tv = inputTextView,
+      tv.string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+      let clip = NSPasteboard.general.string(forType: .string),
+      !clip.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    else { return }
+    tv.string = clip
+    UserDefaults.standard.set(clip, forKey: inputStorageKey)
+    refresh()
+  }
+
   override func loadView() {
     let container = NSView()
     container.translatesAutoresizingMaskIntoConstraints = false
@@ -54,6 +78,14 @@ class TextUtilsViewController: NSViewController, NSTextViewDelegate, NSSplitView
     orientationButton.imagePosition = .imageOnly
     orientationButton.translatesAutoresizingMaskIntoConstraints = false
     orientationButton.setContentHuggingPriority(.required, for: .horizontal)
+
+    historyButton = NSButton(title: "", target: self, action: #selector(showHistory))
+    historyButton.bezelStyle = .texturedRounded
+    historyButton.imagePosition = .imageOnly
+    historyButton.image = NSImage(systemSymbolName: "clock.arrow.circlepath", accessibilityDescription: "History")
+    historyButton.toolTip = "Input history"
+    historyButton.translatesAutoresizingMaskIntoConstraints = false
+    historyButton.setContentHuggingPriority(.required, for: .horizontal)
 
     // 输入 / 结果: 无标签, 滚动文本区直接入 split
     let inputScroll = Self.makeScrollableTextView(editable: true, placeholder: placeholder)
@@ -81,31 +113,16 @@ class TextUtilsViewController: NSViewController, NSTextViewDelegate, NSSplitView
     ioSplit.addArrangedSubview(Self.makePane(resultScroll))
     updateOrientationButton()
 
-    let accessory = makeAccessory()
-    accessory?.translatesAutoresizingMaskIntoConstraints = false
+    accessoryView = makeAccessory()
 
-    var subviews: [NSView] = [orientationButton, ioSplit]
-    if let accessory { subviews.append(accessory) }
-    for v in subviews { container.addSubview(v) }
-
-    // 顶部单行控制条: (可选)方向段控在左 + 布局切换按钮在右; 无冗余标题(侧栏已标识), 无分隔行
+    // 控件已上交顶部 tab 栏 (toolbarAccessories); 内容区只放可拖拽 split, 铺满窗口
+    container.addSubview(ioSplit)
     NSLayoutConstraint.activate([
-      orientationButton.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor, constant: 6),
-      orientationButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
-
       ioSplit.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
       ioSplit.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
-      ioSplit.topAnchor.constraint(equalTo: orientationButton.bottomAnchor, constant: 8),
+      ioSplit.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor, constant: 6),
       ioSplit.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -16),
     ])
-
-    if let accessory {
-      NSLayoutConstraint.activate([
-        accessory.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
-        accessory.centerYAnchor.constraint(equalTo: orientationButton.centerYAnchor),
-        accessory.trailingAnchor.constraint(lessThanOrEqualTo: orientationButton.leadingAnchor, constant: -12),
-      ])
-    }
 
     self.view = container
     refresh()
@@ -119,21 +136,56 @@ class TextUtilsViewController: NSViewController, NSTextViewDelegate, NSSplitView
     }
   }
 
-  override func viewDidAppear() {
-    super.viewDidAppear()
-    // 不自动聚焦输入框: 保证非编辑态下数字键可直接选工具; 需编辑时点击输入框即可
-    autofillFromClipboard()
+  override func viewWillDisappear() {
+    super.viewWillDisappear()
+    snapshotHistory()  // 关闭窗口时也快照 (切换工具的快照由 DetailContainer 触发)
   }
 
-  // 主动探查剪贴板: 首次出现且输入为空时, 有字符串则自动填入
-  private func autofillFromClipboard() {
-    guard !didAutofill else { return }
-    didAutofill = true
-    guard inputTextView.string.isEmpty,
-      let clip = NSPasteboard.general.string(forType: .string),
-      !clip.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    else { return }
-    inputTextView.string = clip
+  // MARK: - 输入历史 (UserDefaults 字符串数组, 去重置顶, 上限 N)
+
+  private var historyKey: String { "JJDEVMTL.history.\(tool.id)" }
+
+  private func history() -> [String] { UserDefaults.standard.stringArray(forKey: historyKey) ?? [] }
+
+  // 把当前输入快照进历史 (供 DetailContainer 在切换前调用)
+  func snapshotHistory() {
+    let cur = inputTextView?.string ?? ""
+    guard !cur.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+    var h = history()
+    h.removeAll { $0 == cur }        // 已存在则移动到最前
+    h.insert(cur, at: 0)
+    if h.count > Self.historyLimit { h = Array(h.prefix(Self.historyLimit)) }
+    UserDefaults.standard.set(h, forKey: historyKey)
+  }
+
+  @objc private func showHistory() {
+    snapshotHistory()  // 先把当前输入并入, 便于在列表中回看
+    let h = history()
+    let menu = NSMenu()
+    if h.isEmpty {
+      let empty = NSMenuItem(title: "No history", action: nil, keyEquivalent: "")
+      empty.isEnabled = false
+      menu.addItem(empty)
+    } else {
+      for (i, entry) in h.enumerated() {
+        let oneLine = entry.replacingOccurrences(of: "\n", with: " ").replacingOccurrences(of: "\t", with: " ")
+        let preview = oneLine.count > 60 ? String(oneLine.prefix(60)) + "…" : oneLine
+        let item = NSMenuItem(title: preview, action: #selector(pickHistory(_:)), keyEquivalent: "")
+        item.tag = i
+        item.target = self
+        menu.addItem(item)
+      }
+    }
+    menu.popUp(positioning: nil, at: NSPoint(x: 0, y: historyButton.bounds.height + 4), in: historyButton)
+  }
+
+  // 选中历史项: 载入 input 并刷新 -> output 同步更新
+  @objc private func pickHistory(_ sender: NSMenuItem) {
+    let h = history()
+    guard h.indices.contains(sender.tag) else { return }
+    let entry = h[sender.tag]
+    inputTextView.string = entry
+    UserDefaults.standard.set(entry, forKey: inputStorageKey)
     refresh()
   }
 
@@ -173,10 +225,20 @@ class TextUtilsViewController: NSViewController, NSTextViewDelegate, NSSplitView
   // MARK: - 数据流
 
   private var inputStorageKey: String { "JJDEVMTL.input.\(tool.id)" }
+  private var historyWork: DispatchWorkItem?
 
   func textDidChange(_ notification: Notification) {
     UserDefaults.standard.set(inputTextView.string, forKey: inputStorageKey)  // 持久化最新内容
     refresh()
+    scheduleHistorySnapshot()  // 输入停顿后自动入历史
+  }
+
+  // 输入停顿 1.5s 后快照当前输入进历史 (去抖: 连续粘贴/编辑只在稳定后记一次)
+  private func scheduleHistorySnapshot() {
+    historyWork?.cancel()
+    let work = DispatchWorkItem { [weak self] in self?.snapshotHistory() }
+    historyWork = work
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5, execute: work)
   }
 
   private func refresh() {

@@ -51,12 +51,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     editMenuItem.submenu = editMenu
     mainMenu.addItem(editMenuItem)
 
-    let viewMenuItem = NSMenuItem()
-    let viewMenu = NSMenu(title: "View")
-    viewMenu.addItem(withTitle: "Toggle Sidebar", action: #selector(NSSplitViewController.toggleSidebar(_:)), keyEquivalent: "s")
-    viewMenuItem.submenu = viewMenu
-    mainMenu.addItem(viewMenuItem)
-
     let windowMenuItem = NSMenuItem()
     let windowMenu = NSMenu(title: "Window")
     windowMenu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
@@ -68,6 +62,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     NSApp.mainMenu = mainMenu
   }
 
+  @MainActor
   @objc private func checkForUpdates() {
     Updater.shared.checkForUpdates(userInitiated: true)
   }

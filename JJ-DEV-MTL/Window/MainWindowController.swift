@@ -27,20 +27,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     window.minSize = Self.minSize
     window.isRestorable = false  // 关掉系统自动状态恢复, 避免与手动持久化互相干扰
 
-    let split = MainSplitViewController()
-    window.contentViewController = split
-
-    // 标题栏内嵌侧栏折叠按钮 (复用标题栏空间, 不占额外行; 动作经响应链到 NSSplitViewController)
-    let toggle = NSButton(
-      image: NSImage(systemSymbolName: "sidebar.left", accessibilityDescription: "Toggle sidebar")!,
-      target: nil, action: #selector(NSSplitViewController.toggleSidebar(_:)))
-    toggle.bezelStyle = .texturedRounded
-    toggle.imagePosition = .imageOnly
-    toggle.frame = NSRect(x: 0, y: 0, width: 40, height: 28)
-    let accessory = NSTitlebarAccessoryViewController()
-    accessory.layoutAttribute = .leading
-    accessory.view = toggle
-    window.addTitlebarAccessoryViewController(accessory)
+    window.contentViewController = RootTabViewController()
 
     window.setFrame(frame, display: false)
 

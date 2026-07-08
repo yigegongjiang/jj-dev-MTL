@@ -353,7 +353,136 @@ final class TextUtilsCoreTests: XCTestCase {
     XCTAssertEqual(r.result, canonical(equivalent))
   }
 
+  // MARK: - Codec Toolkit
+
+  func testCodec_urlEncodeDecode_componentRoundTrips() {
+    let input = "https://example.com/a b?x=1&y=日本"
+    let encoded = CodecToolkitCore.encodeURLComponent(input)
+    XCTAssertNil(encoded.error)
+    XCTAssertEqual(encoded.result, "https%3A%2F%2Fexample.com%2Fa%20b%3Fx%3D1%26y%3D%E6%97%A5%E6%9C%AC")
+
+    let decoded = CodecToolkitCore.decodeURLComponent(encoded.result)
+    XCTAssertNil(decoded.error)
+    XCTAssertEqual(decoded.result, input)
+  }
+
+  func testCodec_base64Text_roundTripsUTF8() {
+    let input = "hello\n世界"
+    let encoded = CodecToolkitCore.encodeBase64Text(input)
+    let decoded = CodecToolkitCore.decodeBase64Text(encoded)
+    XCTAssertNil(decoded.error)
+    XCTAssertEqual(decoded.result, input)
+  }
+
+  func testCodec_timestampMilliseconds_detected() {
+    let r = CodecToolkitCore.convertTimestampOrDate("1700000000000")
+    XCTAssertNil(r.error)
+    XCTAssertTrue(r.result.contains("Source: Unix milliseconds"))
+    XCTAssertTrue(r.result.contains("Unix seconds: 1700000000"))
+    XCTAssertTrue(r.result.contains("Unix milliseconds: 1700000000000"))
+    XCTAssertTrue(r.result.contains("UTC: 2023-11-14 22:13:20 UTC"))
+  }
+
+  func testCodec_datetimeISO_convertsToUnix() {
+    let r = CodecToolkitCore.convertTimestampOrDate("2023-11-14T22:13:20Z")
+    XCTAssertNil(r.error)
+    XCTAssertTrue(r.result.contains("Source: datetime"))
+    XCTAssertTrue(r.result.contains("Unix seconds: 1700000000"))
+  }
+
+  func testCodec_jwtDecode_outputsHeaderPayloadAndNoVerificationClaim() {
+    let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjMiLCJpYXQiOjE3MDAwMDAwMDB9.sig"
+    let r = CodecToolkitCore.decodeJWT(token)
+    XCTAssertNil(r.error)
+    XCTAssertTrue(r.result.contains("\"alg\" : \"HS256\""))
+    XCTAssertTrue(r.result.contains("\"sub\" : \"123\""))
+    XCTAssertTrue(r.result.contains("iat: Source: Unix seconds | Unix seconds: 1700000000"))
+    XCTAssertTrue(r.result.contains("Signature verification: not performed"))
+  }
+
+  func testCodec_base64URLSegment_decodesUnpaddedJWTPart() {
+    let data = CodecToolkitCore.decodeBase64URLSegment("eyJzdWIiOiIxMjMifQ")
+    XCTAssertEqual(String(data: data!, encoding: .utf8), #"{"sub":"123"}"#)
+  }
+
+  func testCodec_imageDataURI_decodesPayloadBytes() {
+    let payload = Data([0, 1, 2, 3, 255])
+    let uri = CodecToolkitCore.dataURI(mime: "image/png", data: payload)
+    XCTAssertEqual(CodecToolkitCore.decodeBase64Data(uri), payload)
+  }
+
+  func testQRCode_generateAndDecode_roundTrips() {
+    let text = "jj-dev-mtl QR"
+    guard let image = QRCodeEngine.makeQRCodeImage(text: text) else {
+      XCTFail("QR image generation failed")
+      return
+    }
+    XCTAssertEqual(QRCodeEngine.decodeQRCode(from: image), [text])
+  }
+
+  @MainActor
+  func testCodecToolkit_timestampStartsWithEditableInputAndReadonlyResult() {
+    let vc = CodecToolkitViewController(tool: Tool(id: "codec-toolkit", title: "Codecs / Tokens"))
+    vc.loadView()
+    vc.view.frame = NSRect(x: 0, y: 0, width: 900, height: 560)
+    vc.view.layoutSubtreeIfNeeded()
+
+    let textViews = allTextViews(in: vc.view).filter { !hasHiddenAncestor($0) }
+    XCTAssertEqual(textViews.count, 2)
+    XCTAssertEqual(textViews.filter { $0.isEditable }.count, 1)
+    XCTAssertEqual(textViews.filter { !$0.isEditable }.count, 1)
+    XCTAssertFalse(textViews.first { $0.isEditable }?.string.isEmpty ?? true)
+  }
+
+  @MainActor
+  func testCodecToolkit_qrCodeUsesSingleEditableTextInput() {
+    let vc = CodecToolkitViewController(tool: Tool(id: "codec-toolkit", title: "Codecs / Tokens"))
+    vc.loadView()
+    vc.view.frame = NSRect(x: 0, y: 0, width: 900, height: 560)
+    vc.view.layoutSubtreeIfNeeded()
+
+    let selector = allSegmentedControls(in: vc.view).first { $0.segmentCount == 5 }
+    XCTAssertNotNil(selector)
+    selector?.selectedSegment = 4
+    if let selector, let action = selector.action {
+      selector.sendAction(action, to: selector.target)
+    }
+    vc.view.layoutSubtreeIfNeeded()
+
+    let textViews = allTextViews(in: vc.view).filter { !hasHiddenAncestor($0) }
+    XCTAssertEqual(textViews.count, 1)
+    XCTAssertEqual(textViews.filter { $0.isEditable }.count, 1)
+  }
+
   // MARK: - 辅助
+
+  private func allTextViews(in view: NSView) -> [NSTextView] {
+    var out = view as? NSTextView == nil ? [] : [view as! NSTextView]
+    for subview in view.subviews {
+      out.append(contentsOf: allTextViews(in: subview))
+    }
+    if let scroll = view as? NSScrollView, let textView = scroll.documentView as? NSTextView {
+      out.append(textView)
+    }
+    return NSOrderedSet(array: out).array as? [NSTextView] ?? out
+  }
+
+  private func allSegmentedControls(in view: NSView) -> [NSSegmentedControl] {
+    var out = view as? NSSegmentedControl == nil ? [] : [view as! NSSegmentedControl]
+    for subview in view.subviews {
+      out.append(contentsOf: allSegmentedControls(in: subview))
+    }
+    return out
+  }
+
+  private func hasHiddenAncestor(_ view: NSView) -> Bool {
+    var cur: NSView? = view
+    while let v = cur {
+      if v.isHidden { return true }
+      cur = v.superview
+    }
+    return false
+  }
 
   // 独立规范化: 与 TextUtilsCore.serialize 同款 writing options, 用于比对格式化输出
   private func canonical(_ json: String) -> String {

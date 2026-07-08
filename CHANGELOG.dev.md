@@ -7,6 +7,30 @@
 
 # Changelog (developer, follow [CHANGELOG.md](./CHANGELOG.md))
 
+## [0.3.0] - 2026-07-08
+
+### Added
+
+- 新增 Codecs / Tokens 系列工具: Timestamp / URL / Base64 (文本 + 图片) / JWT / QR Code.
+  - `Model/Tool.swift`: 移除 Base64 / URL / Timestamp 独立占位入口, 改为 `codec-toolkit` 单入口.
+  - `TextUtils/CodecToolkitCore.swift`: URL component percent encode/decode, Base64 std/url-safe decode, timestamp seconds/ms/us/date 转换, JWT Base64URL decode+JSON pretty+时间 claim 展示, QR Core Image 生成/识别.
+  - `JJ-DEV-MTLTests/TextUtilsCoreTests.swift`: 新增 URL/Base64/Timestamp/JWT/Base64URL/Data URI/QR 往返测试.
+
+### Changed
+
+- 全新顶部水平 tab 导航替代 sidebar+split; 操作控件上交 tab 栏右侧, 内容区铺满.
+  - `Window/RootTabViewController.swift`: 单栏 NSSegmentedControl (左对齐) + 右侧 accessory stack; `ToolbarAccessoryProviding`/`ToolbarAccessoryHost` 协议让子 VC 交出控件, 切 tab 时 `reloadToolbarAccessories`; 数字键 1-N (非编辑态) 切 tab; 切走前 `snapshotHistory`.
+  - `TextUtils/CodecToolkitViewController.swift`: 去内部 moduleSelector, 5 模块由 `selectModule(_:)` 驱动并平铺为顶部 tab; 各模块控件经 `toolbarAccessories` 上交, 状态标签移入图片列下方.
+  - `TextUtils/TextUtilsViewController.swift`: history / 方向 / 布局按钮上交顶部栏, 容器只留 `IOSplitView` 铺满; `activateInput()` 空输入探查剪贴板 (复用 VC 下每次切入探查).
+  - `Window/RootTabViewController.swift`: 切 tab 后对 TextUtils VC 调 `activateInput()` + `makeFirstResponder(nil)` 清焦 (无 sidebar 后文本框成默认响应者会吞数字键).
+  - `Window/MainWindowController.swift`: `contentViewController = RootTabViewController`, 去标题栏侧栏折叠按钮; `App.swift` 去 View→Toggle Sidebar 菜单.
+  - `App.swift` / `Settings/AutoQuitController.swift`: 补 `@MainActor` / `MainActor.assumeIsolated` (Xcode 16.4 起 actor 隔离由 warning 转 error, 修 CI 构建, 防编译器升级再度失败).
+
+### Removed
+
+- 移除侧栏 / detail 容器 / 占位 VC / 未实现占位工具入口 (Hash / UUID / Regex / Text Diff).
+  - 删 `Sidebar/SidebarViewController.swift` / `Detail/DetailContainerViewController.swift` / `Detail/ToolPlaceholderViewController.swift` / `Window/MainSplitViewController.swift`; `Model/Tool.swift` 去 `ToolCatalog` (仅 sidebar 用).
+
 ## [0.2.0] - 2026-07-08
 
 ### Added

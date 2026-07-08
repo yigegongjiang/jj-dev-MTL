@@ -11,6 +11,20 @@
 
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [SemVer](https://semver.org/).
 
+## [0.3.0] - 2026-07-08
+
+### Added
+
+- 新增 Codecs / Tokens 系列工具: Timestamp / URL / Base64 (文本 + 图片) / JWT / QR Code.
+
+### Changed
+
+- 全新顶部水平 tab 导航: 移除侧栏, 所有工具 (含 Settings) 平铺为顶部 tab, 操作按钮并入 tab 栏右侧, 内容区铺满窗口; 数字键 1-N 直切 tab.
+
+### Removed
+
+- 移除侧栏与未实现的占位工具入口 (Hash / UUID / Regex / Text Diff).
+
 ## [0.2.0] - 2026-07-08
 
 ### Added
@@ -46,6 +60,7 @@
 - 提供 `install.sh` 一行命令安装 (下载 → 校验 → 装入 `/Applications`).
 - Help 菜单 → Check for Updates… : 检测新版, 自动下载 + 替换 + 重启.
 
+[0.3.0]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.3.0
 [0.2.0]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.2.0
 [0.1.1]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.1.1
 [0.1.0]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.1.0
