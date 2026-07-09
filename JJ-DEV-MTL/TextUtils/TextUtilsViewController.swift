@@ -426,6 +426,10 @@ final class FormatJsonViewController: TextUtilsViewController {
   private var lastParsed: Any?  // transform 阶段缓存, 供 tree 构建时免二次解析
   private var isTreeMode = false
   private var treeDirty = true  // 表示 tree 内容与 lastParsed 是否一致 (输入变 -> true)
+  private var remoteJSONTask: Task<Void, Never>?
+  private var remoteJSONKey: String?
+  private var remoteJSONText: String?
+  private var remoteJSONError: String?
 
   // text 模式渲染上限 (UTF-16 单位): 超出只染色渲染前缀预览, 全量走虚拟化树形视图.
   // NSTextView 同步布局 rich text 的开销随字符数线性增长, 6MB 达数秒会冻结主线程;
@@ -435,19 +439,26 @@ final class FormatJsonViewController: TextUtilsViewController {
   init(tool: Tool) {
     super.init(
       tool: tool,
-      placeholder: "Paste JSON or escaped JSON string (e.g. {\"k\":\"v\"} or \"{\\\"k\\\":\\\"v\\\"}\")...",
+      placeholder: "Paste JSON, escaped JSON string, or JSON URL (e.g. https://example.com/data.json)...",
       resultDefaultText: "Enter JSON above to see the formatted result"
     )
   }
   required init?(coder: NSCoder) { fatalError() }
 
   override func transform(_ input: String) -> (result: String, error: String?) {
+    if let url = TextUtilsCore.remoteJsonURL(from: input) {
+      return transformRemoteJSON(from: url)
+    }
+    clearRemoteJSONState()
     let r = TextUtilsCore.formatJson(input)
     lastParsed = r.parsed
     return (r.result, r.error)
   }
 
   override func highlightResult(_ result: String, font: NSFont) -> NSAttributedString {
+    if result.hasPrefix("Fetching JSON from ") {
+      return SyntaxHighlighter.plain(result, font: font)
+    }
     let count = result.utf16.count
     if count <= Self.textRenderLimit {
       return SyntaxHighlighter.json(result, font: font)
@@ -484,8 +495,70 @@ final class FormatJsonViewController: TextUtilsViewController {
 
   // 输入 / 结果变了 -> tree 数据过期; 若当前显示的是 tree 模式立刻 rebuild, 否则打标记等切模式再 rebuild
   override func didRefreshResult(text: String, error: String?) {
+    if text.isEmpty && error == nil {
+      lastParsed = nil
+      clearRemoteJSONState()
+    }
     treeDirty = true
     if isTreeMode { rebuildTreeIfNeeded() }
+  }
+
+  private func transformRemoteJSON(from url: URL) -> (result: String, error: String?) {
+    let key = url.absoluteString
+    if remoteJSONKey == key, let text = remoteJSONText {
+      let r = TextUtilsCore.formatJson(text)
+      lastParsed = r.parsed
+      if let error = r.error {
+        return ("", "Fetched response is not valid JSON: \(error)")
+      }
+      return (r.result, nil)
+    }
+    if remoteJSONKey == key, let error = remoteJSONError {
+      lastParsed = nil
+      return ("", error)
+    }
+    startRemoteJSONFetch(url: url, key: key)
+    lastParsed = nil
+    return ("Fetching JSON from \(key)...", nil)
+  }
+
+  private func startRemoteJSONFetch(url: URL, key: String) {
+    if remoteJSONKey == key, remoteJSONTask != nil, remoteJSONText == nil, remoteJSONError == nil { return }
+    remoteJSONTask?.cancel()
+    remoteJSONKey = key
+    remoteJSONText = nil
+    remoteJSONError = nil
+    remoteJSONTask = Task { [weak self] in
+      do {
+        let text = try await RemoteJSONFetcher.fetchText(from: url)
+        guard !Task.isCancelled else { return }
+        await MainActor.run {
+          guard self?.remoteJSONKey == key else { return }
+          self?.remoteJSONText = text
+          self?.remoteJSONError = nil
+          self?.remoteJSONTask = nil
+          self?.reloadResult()
+        }
+      } catch is CancellationError {
+      } catch {
+        guard !Task.isCancelled else { return }
+        await MainActor.run {
+          guard self?.remoteJSONKey == key else { return }
+          self?.remoteJSONText = nil
+          self?.remoteJSONError = "Fetch failed: \(error.localizedDescription)"
+          self?.remoteJSONTask = nil
+          self?.reloadResult()
+        }
+      }
+    }
+  }
+
+  private func clearRemoteJSONState() {
+    remoteJSONTask?.cancel()
+    remoteJSONTask = nil
+    remoteJSONKey = nil
+    remoteJSONText = nil
+    remoteJSONError = nil
   }
 
   private func rebuildTreeIfNeeded() {
@@ -513,5 +586,36 @@ final class FormatJsonViewController: TextUtilsViewController {
     viewToggleButton.toolTip = isTreeMode
       ? "Switch to text view"
       : "Switch to tree view (expand / collapse)"
+  }
+}
+
+enum RemoteJSONFetcher {
+  private static let maxBytes = 50 * 1024 * 1024
+  private static let timeout: TimeInterval = 30
+
+  nonisolated static func fetchText(from url: URL, session: URLSession = .shared) async throws -> String {
+    var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: timeout)
+    request.setValue("application/json, text/json, */*;q=0.1", forHTTPHeaderField: "Accept")
+    let (data, response) = try await session.data(for: request)
+    if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+      throw FetchError.httpStatus(http.statusCode)
+    }
+    guard data.count <= maxBytes else { throw FetchError.tooLarge(maxBytes) }
+    guard let text = String(data: data, encoding: .utf8) else { throw FetchError.nonUTF8 }
+    return text
+  }
+
+  private enum FetchError: LocalizedError {
+    case httpStatus(Int)
+    case tooLarge(Int)
+    case nonUTF8
+
+    var errorDescription: String? {
+      switch self {
+      case .httpStatus(let code): return "HTTP \(code)"
+      case .tooLarge(let maxBytes): return "response is larger than \(maxBytes / 1024 / 1024) MB"
+      case .nonUTF8: return "response is not UTF-8 text"
+      }
+    }
   }
 }

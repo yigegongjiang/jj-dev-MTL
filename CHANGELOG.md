@@ -11,6 +11,12 @@
 
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [SemVer](https://semver.org/).
 
+## [0.3.2] - 2026-07-09
+
+### Added
+
+- Format JSON 支持直接输入 JSON URL 或含单一 URL 的 curl / 文本: 自动拉取远端 JSON 并格式化, 原始 JSON / 转义 JSON 输入保持不变.
+
 ## [0.3.1] - 2026-07-09
 
 ### Added
@@ -70,6 +76,7 @@
 - 提供 `install.sh` 一行命令安装 (下载 → 校验 → 装入 `/Applications`).
 - Help 菜单 → Check for Updates… : 检测新版, 自动下载 + 替换 + 重启.
 
+[0.3.2]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.3.2
 [0.3.1]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.3.1
 [0.3.0]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.3.0
 [0.2.0]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.2.0

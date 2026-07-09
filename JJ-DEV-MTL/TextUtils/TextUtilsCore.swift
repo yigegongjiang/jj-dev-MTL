@@ -49,6 +49,137 @@ enum TextUtilsCore {
     let parsed: Any?  // 成功时携带解析对象 (JSONSerialization 结果), 供树视图免二次解析
   }
 
+  nonisolated static func remoteJsonURL(from text: String) -> URL? {
+    let normalized = text
+      .replacingOccurrences(of: "\\\r\n", with: " ")
+      .replacingOccurrences(of: "\\\n", with: " ")
+    let trimmed = normalized.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return nil }
+
+    if let url = remoteURL(fromExactCandidate: trimmed) { return url }
+    if let url = remoteURL(fromCurlCommand: trimmed) { return url }
+    if startsLikeJSON(trimmed) { return nil }
+
+    let urls = uniqueURLs(remoteURLs(in: trimmed))
+    return urls.count == 1 ? urls[0] : nil
+  }
+
+  private nonisolated static func remoteURL(fromCurlCommand command: String) -> URL? {
+    let tokens = shellTokens(in: command)
+    guard let first = tokens.first,
+      first == "curl" || first.hasSuffix("/curl")
+    else { return nil }
+
+    let flagsWithValues: Set<String> = [
+      "-A", "--user-agent", "-b", "--cookie", "-d", "--data", "--data-ascii", "--data-binary",
+      "--data-raw", "--data-urlencode", "-e", "--referer", "-F", "--form", "-H", "--header",
+      "-o", "--output", "-u", "--user", "-X", "--request", "--connect-timeout", "--max-time",
+      "--retry", "--cacert", "--cert", "--key",
+    ]
+    var urls: [URL] = []
+    var index = 1
+    while index < tokens.count {
+      let token = tokens[index]
+      if token == "--url" {
+        if index + 1 < tokens.count, let url = remoteURL(fromExactCandidate: tokens[index + 1]) {
+          urls.append(url)
+        }
+        index += 2
+        continue
+      }
+      if token.hasPrefix("--url=") {
+        let value = String(token.dropFirst("--url=".count))
+        if let url = remoteURL(fromExactCandidate: value) { urls.append(url) }
+        index += 1
+        continue
+      }
+      if flagsWithValues.contains(token) {
+        index += 2
+        continue
+      }
+      if token.hasPrefix("-") {
+        index += 1
+        continue
+      }
+      if let url = remoteURL(fromExactCandidate: token) { urls.append(url) }
+      index += 1
+    }
+
+    return uniqueURLs(urls).last
+  }
+
+  private nonisolated static func shellTokens(in command: String) -> [String] {
+    var tokens: [String] = []
+    var current = ""
+    var quote: Character?
+    var chars = Array(command)
+    var index = 0
+    while index < chars.count {
+      let ch = chars[index]
+      if let activeQuote = quote {
+        if ch == activeQuote {
+          quote = nil
+        } else if ch == "\\", activeQuote == "\"", index + 1 < chars.count {
+          index += 1
+          current.append(chars[index])
+        } else {
+          current.append(ch)
+        }
+      } else if ch == "'" || ch == "\"" {
+        quote = ch
+      } else if ch == "\\" && index + 1 < chars.count {
+        index += 1
+        current.append(chars[index])
+      } else if ch.isWhitespace {
+        if !current.isEmpty {
+          tokens.append(current)
+          current = ""
+        }
+      } else {
+        current.append(ch)
+      }
+      index += 1
+    }
+    if !current.isEmpty { tokens.append(current) }
+    return tokens
+  }
+
+  private nonisolated static func remoteURLs(in text: String) -> [URL] {
+    let pattern = #"https?://[^\s"'<>`]+"#
+    guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+      return []
+    }
+    let ns = text as NSString
+    return regex.matches(in: text, range: NSRange(location: 0, length: ns.length)).compactMap {
+      remoteURL(fromExactCandidate: ns.substring(with: $0.range))
+    }
+  }
+
+  private nonisolated static func remoteURL(fromExactCandidate raw: String) -> URL? {
+    var candidate = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    while let first = candidate.first, "([{<".contains(first) { candidate.removeFirst() }
+    while let last = candidate.last, ".,;:)]}>".contains(last) { candidate.removeLast() }
+    guard candidate.rangeOfCharacter(from: .whitespacesAndNewlines) == nil,
+      let url = URL(string: candidate),
+      let scheme = url.scheme?.lowercased(),
+      (scheme == "http" || scheme == "https"),
+      url.host != nil
+    else { return nil }
+    return url
+  }
+
+  private nonisolated static func uniqueURLs(_ urls: [URL]) -> [URL] {
+    var seen = Set<String>()
+    var out: [URL] = []
+    for url in urls where seen.insert(url.absoluteString).inserted { out.append(url) }
+    return out
+  }
+
+  private nonisolated static func startsLikeJSON(_ text: String) -> Bool {
+    guard let first = text.first else { return false }
+    return first == "{" || first == "[" || first == "\""
+  }
+
   // JSON 格式化 + 嵌套解包 + 主动探查含噪输入.
   // 输入不可信, 预期值可能被前后冗余包裹, 逐级降级探查:
   //   1. 直接解析

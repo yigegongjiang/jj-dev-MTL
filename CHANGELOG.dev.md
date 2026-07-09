@@ -7,6 +7,15 @@
 
 # Changelog (developer, follow [CHANGELOG.md](./CHANGELOG.md))
 
+## [0.3.2] - 2026-07-09
+
+### Added
+
+- Format JSON 支持直接输入 JSON URL 或含单一 URL 的 curl / 文本: 自动拉取远端 JSON 并格式化, 原始 JSON / 转义 JSON 输入保持不变.
+  - `TextUtils/TextUtilsCore.swift`: `remoteJsonURL(from:)` 支持 direct URL / curl token 解析 / 唯一 URL 提取, 同时避开 JSON 内 URL 字符串.
+  - `TextUtils/TextUtilsViewController.swift`: `FormatJsonViewController` 对 URL 输入启动可取消 `Task`, `RemoteJSONFetcher` 校验 HTTP 2xx / UTF-8 / 50 MB 上限后复用 `formatJson` 与树视图缓存.
+  - `JJ-DEV-MTLTests/TextUtilsCoreTests.swift`: 覆盖 URL 检测、fetch 2xx/HTTP error/non-UTF8; QR 测试改用当前顶层 tab 路由入口.
+
 ## [0.3.1] - 2026-07-09
 
 ### Added

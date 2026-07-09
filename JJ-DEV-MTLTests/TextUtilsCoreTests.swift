@@ -353,6 +353,76 @@ final class TextUtilsCoreTests: XCTestCase {
     XCTAssertEqual(r.result, canonical(equivalent))
   }
 
+  func testRemoteJsonURL_singleHTTPURLDetected() {
+    let url = TextUtilsCore.remoteJsonURL(from: "  https://models.dev/catalog.json  ")
+    XCTAssertEqual(url?.absoluteString, "https://models.dev/catalog.json")
+  }
+
+  func testRemoteJsonURL_curlCommandDetected() {
+    let url = TextUtilsCore.remoteJsonURL(from: "curl https://models.dev/catalog.json")
+    XCTAssertEqual(url?.absoluteString, "https://models.dev/catalog.json")
+  }
+
+  func testRemoteJsonURL_curlCommandWithFlagsAndRefererPicksTargetURL() {
+    let input = #"curl -L -H "Accept: application/json" -e https://referer.example https://models.dev/catalog.json"#
+    let url = TextUtilsCore.remoteJsonURL(from: input)
+    XCTAssertEqual(url?.absoluteString, "https://models.dev/catalog.json")
+  }
+
+  func testRemoteJsonURL_curlCommandWithUrlFlagDetected() {
+    let url = TextUtilsCore.remoteJsonURL(from: "curl --url 'https://models.dev/catalog.json'")
+    XCTAssertEqual(url?.absoluteString, "https://models.dev/catalog.json")
+  }
+
+  func testRemoteJsonURL_proseWithOneURLDetected() {
+    let url = TextUtilsCore.remoteJsonURL(from: "fetch this please: https://models.dev/catalog.json")
+    XCTAssertEqual(url?.absoluteString, "https://models.dev/catalog.json")
+  }
+
+  func testRemoteJsonURL_jsonStringContainingURLNotDetected() {
+    XCTAssertNil(TextUtilsCore.remoteJsonURL(from: #"{"url":"https://models.dev/catalog.json"}"#))
+    XCTAssertNil(TextUtilsCore.remoteJsonURL(from: #""https://models.dev/catalog.json""#))
+  }
+
+  func testRemoteJsonURL_rejectsNonHTTPAndMultiTokenInput() {
+    XCTAssertNil(TextUtilsCore.remoteJsonURL(from: "file:///tmp/data.json"))
+    XCTAssertNil(TextUtilsCore.remoteJsonURL(from: "https://models.dev/a.json https://models.dev/b.json"))
+  }
+
+  func testRemoteJsonURL_urlWithExtraBodyDetectedWhenUnique() {
+    let url = TextUtilsCore.remoteJsonURL(from: "https://models.dev/catalog.json\n{\"a\":1}")
+    XCTAssertEqual(url?.absoluteString, "https://models.dev/catalog.json")
+  }
+
+  func testRemoteJSONFetcher_fetches2xxUTF8Text() async throws {
+    let session = Self.stubSession(status: 200, data: Data(#"{"ok":true}"#.utf8))
+    let text = try await RemoteJSONFetcher.fetchText(
+      from: URL(string: "https://example.test/catalog.json")!, session: session)
+    XCTAssertEqual(text, #"{"ok":true}"#)
+  }
+
+  func testRemoteJSONFetcher_rejectsHTTPError() async {
+    let session = Self.stubSession(status: 503, data: Data("Service Unavailable".utf8))
+    do {
+      _ = try await RemoteJSONFetcher.fetchText(
+        from: URL(string: "https://example.test/catalog.json")!, session: session)
+      XCTFail("expected HTTP error")
+    } catch {
+      XCTAssertEqual(error.localizedDescription, "HTTP 503")
+    }
+  }
+
+  func testRemoteJSONFetcher_rejectsNonUTF8Text() async {
+    let session = Self.stubSession(status: 200, data: Data([0xFF, 0xFE, 0x00]))
+    do {
+      _ = try await RemoteJSONFetcher.fetchText(
+        from: URL(string: "https://example.test/catalog.json")!, session: session)
+      XCTFail("expected UTF-8 error")
+    } catch {
+      XCTAssertEqual(error.localizedDescription, "response is not UTF-8 text")
+    }
+  }
+
   // MARK: - Codec Toolkit
 
   func testCodec_urlEncodeDecode_componentRoundTrips() {
@@ -441,12 +511,9 @@ final class TextUtilsCoreTests: XCTestCase {
     vc.view.frame = NSRect(x: 0, y: 0, width: 900, height: 560)
     vc.view.layoutSubtreeIfNeeded()
 
-    let selector = allSegmentedControls(in: vc.view).first { $0.segmentCount == 5 }
-    XCTAssertNotNil(selector)
-    selector?.selectedSegment = 4
-    if let selector, let action = selector.action {
-      selector.sendAction(action, to: selector.target)
-    }
+    // v0.3.0: 模块选择器已移到顶部 tab 栏, 由 RootTabViewController 通过 selectModule 驱动.
+    // QR = 第 5 个模块 (timestamp/url/base64/jwt/qr, index 4).
+    vc.selectModule(4)
     vc.view.layoutSubtreeIfNeeded()
 
     let textViews = allTextViews(in: vc.view).filter { !hasHiddenAncestor($0) }
@@ -467,14 +534,6 @@ final class TextUtilsCoreTests: XCTestCase {
     return NSOrderedSet(array: out).array as? [NSTextView] ?? out
   }
 
-  private func allSegmentedControls(in view: NSView) -> [NSSegmentedControl] {
-    var out = view as? NSSegmentedControl == nil ? [] : [view as! NSSegmentedControl]
-    for subview in view.subviews {
-      out.append(contentsOf: allSegmentedControls(in: subview))
-    }
-    return out
-  }
-
   private func hasHiddenAncestor(_ view: NSView) -> Bool {
     var cur: NSView? = view
     while let v = cur {
@@ -482,6 +541,14 @@ final class TextUtilsCoreTests: XCTestCase {
       cur = v.superview
     }
     return false
+  }
+
+  private static func stubSession(status: Int, data: Data) -> URLSession {
+    StubURLProtocol.status = status
+    StubURLProtocol.data = data
+    let config = URLSessionConfiguration.ephemeral
+    config.protocolClasses = [StubURLProtocol.self]
+    return URLSession(configuration: config)
   }
 
   // 独立规范化: 与 TextUtilsCore.serialize 同款 writing options, 用于比对格式化输出
@@ -493,4 +560,24 @@ final class TextUtilsCoreTests: XCTestCase {
       options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes, .fragmentsAllowed])
     return String(data: out, encoding: .utf8)!
   }
+}
+
+final class StubURLProtocol: URLProtocol {
+  nonisolated(unsafe) static var status = 200
+  nonisolated(unsafe) static var data = Data()
+
+  override class func canInit(with request: URLRequest) -> Bool { true }
+  override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+  override func startLoading() {
+    guard let url = request.url,
+      let response = HTTPURLResponse(
+        url: url, statusCode: Self.status, httpVersion: "HTTP/1.1", headerFields: nil)
+    else { return }
+    client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+    client?.urlProtocol(self, didLoad: Self.data)
+    client?.urlProtocolDidFinishLoading(self)
+  }
+
+  override func stopLoading() {}
 }
