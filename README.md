@@ -6,7 +6,7 @@
 - NEVER 写「开发」段 (VibeCoding 不向人类解释 dev 命令)
 ```
 
-# JJ-DEV-MTL
+# jj-dev-MTL
 
 面向开发者的 macOS 原生小工具集 (JSON 格式化 / 文本转义 / 编解码 · Token / ...), Swift + AppKit, 启动即用.
 
@@ -26,13 +26,13 @@
 一行命令 (拉最新 → 装入 `/Applications` → 清 quarantine):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yigegongjiang/jj-dev-mtl/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yigegongjiang/jj-dev-MTL/main/install.sh | bash
 ```
 
-亦可 [Releases](https://github.com/yigegongjiang/jj-dev-mtl/releases) 直接下载 `JJ-DEV-MTL-macos.zip` 手动解压拖入 `/Applications`, 首次启动前:
+亦可 [Releases](https://github.com/yigegongjiang/jj-dev-MTL/releases) 直接下载 `jj-dev-MTL-macos.zip` 手动解压拖入 `/Applications`, 首次启动前:
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/JJ-DEV-MTL.app
+xattr -dr com.apple.quarantine /Applications/jj-dev-MTL.app
 ```
 
 ## 更新

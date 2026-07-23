@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Install the latest JJ-DEV-MTL.app from GitHub Releases into /Applications.
-# Usage: curl -fsSL https://raw.githubusercontent.com/yigegongjiang/jj-dev-mtl/main/install.sh | bash
+# Install the latest jj-dev-MTL.app from GitHub Releases into /Applications.
+# Usage: curl -fsSL https://raw.githubusercontent.com/yigegongjiang/jj-dev-MTL/main/install.sh | bash
 
 set -euo pipefail
 
-REPO="yigegongjiang/jj-dev-mtl"
-APP_NAME="JJ-DEV-MTL"
+REPO="yigegongjiang/jj-dev-MTL"
+APP_NAME="jj-dev-MTL"
 ASSET="${APP_NAME}-macos.zip"
 INSTALL_DIR="/Applications"
 
@@ -19,7 +19,7 @@ command -v shasum >/dev/null 2>&1 || err "shasum is required"
 [ "$(uname -s)" = "Darwin" ] || err "unsupported OS: $(uname -s) (macOS only)"
 
 base="https://github.com/${REPO}/releases/latest/download"
-tmpdir="$(mktemp -d -t jj-dev-mtl-install)"
+tmpdir="$(mktemp -d -t jj-dev-MTL-install)"
 trap 'rm -rf "$tmpdir"' EXIT
 
 log "downloading ${ASSET}"

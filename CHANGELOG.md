@@ -11,6 +11,12 @@
 
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) + [SemVer](https://semver.org/).
 
+## [0.3.3] - 2026-07-23
+
+### Changed
+
+- 应用更名 `JJ-DEV-MTL` → `jj-dev-MTL`: 应用名与窗口标题同步更新; 原有设置与历史记录不受影响.
+
 ## [0.3.2] - 2026-07-09
 
 ### Added
@@ -76,6 +82,7 @@
 - 提供 `install.sh` 一行命令安装 (下载 → 校验 → 装入 `/Applications`).
 - Help 菜单 → Check for Updates… : 检测新版, 自动下载 + 替换 + 重启.
 
+[0.3.3]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.3.3
 [0.3.2]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.3.2
 [0.3.1]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.3.1
 [0.3.0]: https://github.com/yigegongjiang/jj-dev-mtl/releases/tag/v0.3.0

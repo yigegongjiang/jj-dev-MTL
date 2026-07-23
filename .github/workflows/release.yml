@@ -9,9 +9,9 @@ permissions:
   contents: write
 
 env:
-  APP_NAME: JJ-DEV-MTL
-  PROJECT: JJ-DEV-MTL.xcodeproj
-  TARGET: JJ-DEV-MTL
+  APP_NAME: jj-dev-MTL
+  PROJECT: jj-dev-MTL.xcodeproj
+  TARGET: jj-dev-MTL
 
 jobs:
   release:

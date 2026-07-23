@@ -4,8 +4,8 @@ import Cocoa
 final class Updater {
   static let shared = Updater()
 
-  private let repo = "yigegongjiang/jj-dev-mtl"
-  private let asset = "JJ-DEV-MTL-macos.zip"
+  private let repo = "yigegongjiang/jj-dev-MTL"
+  private let asset = "jj-dev-MTL-macos.zip"
   private let metadataAsset = "release-metadata.json"
 
   private var localCommitSHA: String {
@@ -43,7 +43,7 @@ final class Updater {
     let url = URL(string: "https://github.com/\(repo)/releases/latest/download/\(metadataAsset)")!
     var req = URLRequest(url: url)
     req.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-    req.setValue("JJ-DEV-MTL/\(currentVersion)", forHTTPHeaderField: "User-Agent")
+    req.setValue("jj-dev-MTL/\(currentVersion)", forHTTPHeaderField: "User-Agent")
     let (data, resp) = try await URLSession.shared.data(for: req)
     guard let http = resp as? HTTPURLResponse, http.statusCode == 200,
           let obj = try JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -146,7 +146,7 @@ final class Updater {
 
   private func makeTempDir() throws -> URL {
     let d = FileManager.default.temporaryDirectory
-      .appendingPathComponent("jj-dev-mtl-update-\(UUID().uuidString)")
+      .appendingPathComponent("jj-dev-MTL-update-\(UUID().uuidString)")
     try FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
     return d
   }

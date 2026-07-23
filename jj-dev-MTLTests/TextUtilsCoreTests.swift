@@ -1,6 +1,6 @@
 import XCTest
 
-@testable import JJ_DEV_MTL
+@testable import jj_dev_MTL
 
 final class TextUtilsCoreTests: XCTestCase {
 
@@ -482,7 +482,7 @@ final class TextUtilsCoreTests: XCTestCase {
   }
 
   func testQRCode_generateAndDecode_roundTrips() {
-    let text = "jj-dev-mtl QR"
+    let text = "jj-dev-MTL QR"
     guard let image = QRCodeEngine.makeQRCodeImage(text: text) else {
       XCTFail("QR image generation failed")
       return

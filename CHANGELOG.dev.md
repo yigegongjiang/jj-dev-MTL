@@ -7,6 +7,14 @@
 
 # Changelog (developer, follow [CHANGELOG.md](./CHANGELOG.md))
 
+## [0.3.3] - 2026-07-23
+
+### Changed
+
+- 应用更名 `JJ-DEV-MTL` → `jj-dev-MTL`: 应用名与窗口标题同步更新; 原有设置与历史记录不受影响.
+  - 全量重命名: Xcode 工程 / target / scheme / product / app 名, Swift module `JJ_DEV_MTL` → `jj_dev_MTL`, 源码目录 / 测试目录 / `.xcodeproj`, 文档 / CI (`release.yml`) / `install.sh`, GitHub repo 与本机目录.
+  - 刻意不变: bundle ID `com.yigegongjiang.JJ-DEV-MTL` + `UserDefaults` key 前缀 `JJDEVMTL.*` → 用户设置 / 窗口尺寸 / 历史零丢失; Release 资产名随之变为 `jj-dev-MTL-macos.zip` (旧版内建更新器需一次手动 `install.sh` 迁移).
+
 ## [0.3.2] - 2026-07-09
 
 ### Added

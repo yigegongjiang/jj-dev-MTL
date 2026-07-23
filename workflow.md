@@ -16,8 +16,8 @@
 AI 完成 build + launch, app 启动后交人类肉眼验证 UI / 行为.
 
 ```bash
-xcodebuild -project JJ-DEV-MTL.xcodeproj -scheme JJ-DEV-MTL -configuration Debug -derivedDataPath build build       # 编译
-open build/Build/Products/Debug/JJ-DEV-MTL-dev.app                                                                  # 启动
+xcodebuild -project jj-dev-MTL.xcodeproj -scheme jj-dev-MTL -configuration Debug -derivedDataPath build build       # 编译
+open build/Build/Products/Debug/jj-dev-MTL-dev.app                                                                  # 启动
 ```
 
 # 发布
@@ -36,7 +36,7 @@ open build/Build/Products/Debug/JJ-DEV-MTL-dev.app                              
 ## 1. 验证
 
 ```bash
-xcodebuild -project JJ-DEV-MTL.xcodeproj -target JJ-DEV-MTL -configuration Release clean build   # Release 编译零警告零错误
+xcodebuild -project jj-dev-MTL.xcodeproj -target jj-dev-MTL -configuration Release clean build   # Release 编译零警告零错误
 ```
 
 ## 2. 写版本
@@ -60,9 +60,9 @@ git push origin main
 git push origin vX.Y.Z                    # 触发 .github/workflows/release.yml
 gh run watch --exit-status                 # 等 GHA 结束; 失败即返读日志修复
 
-pkill -x JJ-DEV-MTL 2>/dev/null || true   # 杀掉本机运行中的旧版本 (未运行则忽略)
+pkill -x jj-dev-MTL 2>/dev/null || true   # 杀掉本机运行中的旧版本 (未运行则忽略)
 bash install.sh                            # 从 latest release 拉取 + 校验 SHA256 + 装 /Applications
-open /Applications/JJ-DEV-MTL.app          # 启动, 交人类肉眼验证
+open /Applications/jj-dev-MTL.app          # 启动, 交人类肉眼验证
 ```
 
 ## 4. 修上版 bug
@@ -80,7 +80,7 @@ git push origin main --force-with-lease
 git push origin vX.Y.Z                    # 触发 GHA 重跑, 覆盖同名 release
 gh run watch --exit-status
 
-pkill -x JJ-DEV-MTL 2>/dev/null || true
+pkill -x jj-dev-MTL 2>/dev/null || true
 bash install.sh
-open /Applications/JJ-DEV-MTL.app
+open /Applications/jj-dev-MTL.app
 ```

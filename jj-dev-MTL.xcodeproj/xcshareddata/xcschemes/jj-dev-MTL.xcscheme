@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "F32181B42FFE4DF3001386AE"
-               BuildableName = "JJ-DEV-MTL.app"
-               BlueprintName = "JJ-DEV-MTL"
-               ReferencedContainer = "container:JJ-DEV-MTL.xcodeproj">
+               BuildableName = "jj-dev-MTL.app"
+               BlueprintName = "jj-dev-MTL"
+               ReferencedContainer = "container:jj-dev-MTL.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -29,9 +29,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E91FFB00726E3567F322561B"
-               BuildableName = "JJ-DEV-MTLTests.xctest"
-               BlueprintName = "JJ-DEV-MTLTests"
-               ReferencedContainer = "container:JJ-DEV-MTL.xcodeproj">
+               BuildableName = "jj-dev-MTLTests.xctest"
+               BlueprintName = "jj-dev-MTLTests"
+               ReferencedContainer = "container:jj-dev-MTL.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -47,9 +47,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E91FFB00726E3567F322561B"
-               BuildableName = "JJ-DEV-MTLTests.xctest"
-               BlueprintName = "JJ-DEV-MTLTests"
-               ReferencedContainer = "container:JJ-DEV-MTL.xcodeproj">
+               BuildableName = "jj-dev-MTLTests.xctest"
+               BlueprintName = "jj-dev-MTLTests"
+               ReferencedContainer = "container:jj-dev-MTL.xcodeproj">
             </BuildableReference>
          </TestableReference>
          <TestableReference
@@ -57,9 +57,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E91FFB00726E3567F322561B"
-               BuildableName = "JJ-DEV-MTLTests.xctest"
-               BlueprintName = "JJ-DEV-MTLTests"
-               ReferencedContainer = "container:JJ-DEV-MTL.xcodeproj">
+               BuildableName = "jj-dev-MTLTests.xctest"
+               BlueprintName = "jj-dev-MTLTests"
+               ReferencedContainer = "container:jj-dev-MTL.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>

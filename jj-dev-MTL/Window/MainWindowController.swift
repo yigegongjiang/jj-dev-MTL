@@ -11,7 +11,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
   private static var appTitle: String {
     Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
       ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
-      ?? "JJ-DEV-MTL"
+      ?? "jj-dev-MTL"
   }
 
   convenience init() {

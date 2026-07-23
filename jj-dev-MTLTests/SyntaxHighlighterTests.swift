@@ -1,7 +1,7 @@
 import XCTest
 import Cocoa
 
-@testable import JJ_DEV_MTL
+@testable import jj_dev_MTL
 
 // 染色逻辑的 color-run 断言: 直接验证真实 SyntaxHighlighter 对各 token 赋的颜色
 final class SyntaxHighlighterTests: XCTestCase {
